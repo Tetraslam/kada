@@ -8,6 +8,15 @@ import {
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useRef, useState } from 'react';
 
+// Font
+const fontProps = {
+  font: './Inter-Bold.woff',
+  fontSize: 1.2,
+  letterSpacing: -0.05,
+  lineHeight: 1,
+  'material-toneMapped': false,
+};
+
 function Cylinder({
   position,
   label,
@@ -24,15 +33,6 @@ function Cylinder({
   // Subscribe this component to the render-loop, rotate the mesh every frame
   useFrame((state, delta) => {});
 
-  // Font
-  const fontProps = {
-    font: './Inter-Bold.woff',
-    fontSize: 1.2,
-    letterSpacing: -0.05,
-    lineHeight: 1,
-    'material-toneMapped': false,
-  };
-
   // Return view, these are regular three.js elements expressed in JSX
   return (
     <>
@@ -43,16 +43,16 @@ function Cylinder({
         onPointerOut={(e) => setHover(false)}
       >
         <cylinderGeometry args={[0.8, 0.8, 2.4, 32]} />
-        <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
+        <meshStandardMaterial color={hovered ? 'orange' : 'hotpink'} />
 
-        <Text
+        {/* <Text
           {...fontProps}
           characters="0123456789"
           rotation={[-Math.PI / 2, 0, 0]}
           position={[0, 1.21, 0]}
         >
           {label}
-        </Text>
+        </Text> */}
         <Text {...fontProps} characters="0123456789" position={[0, 0, 0.8]}>
           {label}
         </Text>
@@ -92,6 +92,24 @@ export default function Stage({ positions }: { positions: number[][] }) {
 
       {/* Floor */}
       <GridPlane />
+
+      {/* Text label for stage directions */}
+      <Text
+        {...fontProps}
+        position={[0, 0, 28]}
+        rotation={[0, 0, 0]}
+        color={'#a0a0a0'}
+      >
+        Front
+      </Text>
+      <Text
+        {...fontProps}
+        position={[0, 0, -28]}
+        rotation={[0, 0, 0]}
+        color={'#a0a0a0'}
+      >
+        Back
+      </Text>
 
       {/* Cylinders */}
       {positions.map((pos, i) => {
