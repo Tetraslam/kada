@@ -2,11 +2,12 @@ import { GridPlane } from '@/components/GridPlane';
 import {
   Billboard,
   OrbitControls,
+  OrthographicCamera,
   PerspectiveCamera,
   Text,
 } from '@react-three/drei';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Font
 const fontProps = {
@@ -20,9 +21,11 @@ const fontProps = {
 function Cylinder({
   position,
   label,
+  cameraView, // perspective vs orthographic
 }: {
   position: [number, number, number];
   label?: string;
+  cameraView: boolean;
 }) {
   // This reference will give us direct access to the mesh
   const meshRef: any = useRef();
@@ -53,7 +56,12 @@ function Cylinder({
         >
           {label}
         </Text> */}
-        <Text {...fontProps} characters="0123456789" position={[0, 0, 0.8]}>
+        <Text
+          {...fontProps}
+          characters="0123456789"
+          rotation={cameraView ? [0, 0, 0] : [-Math.PI / 2, 0, 0]}
+          position={cameraView ? [0, 0, 0.8] : [0, 1.21, 0]}
+        >
           {label}
         </Text>
       </mesh>
@@ -61,11 +69,24 @@ function Cylinder({
   );
 }
 
-export default function Stage({ positions }: { positions: number[][] }) {
+export default function Stage({
+  positions,
+  cameraView,
+}: {
+  positions: number[][];
+  cameraView: boolean;
+}) {
+  const orthoCam: any = useRef();
+
+  useEffect(() => {
+    if (!orthoCam.current) return;
+    orthoCam.current?.lookAt(0, 0, 0);
+  }, [orthoCam.current, cameraView]);
+
   return (
     <Canvas>
       {/* Camera */}
-      <PerspectiveCamera makeDefault position={[0, 0, 20]} />
+      <PerspectiveCamera makeDefault={cameraView} position={[0, 0, 20]} />
       <OrbitControls
         minAzimuthAngle={-Math.PI / 2}
         maxAzimuthAngle={Math.PI / 2}
@@ -74,12 +95,19 @@ export default function Stage({ positions }: { positions: number[][] }) {
         dampingFactor={0.1}
         minDistance={20}
         maxDistance={100}
+        enabled={cameraView}
+      />
+      <OrthographicCamera
+        makeDefault={!cameraView}
+        zoom={20}
+        position={[0, 5, 0]}
+        ref={orthoCam}
       />
 
       {/* Lighting */}
       <ambientLight intensity={Math.PI / 2} />
       <spotLight
-        position={[10, 10, 10]}
+        position={[30, 10, 30]}
         angle={0.15}
         penumbra={1}
         decay={0}
@@ -96,16 +124,16 @@ export default function Stage({ positions }: { positions: number[][] }) {
       {/* Text label for stage directions */}
       <Text
         {...fontProps}
-        position={[0, 0, 28]}
-        rotation={[0, 0, 0]}
+        position={[0, 0, 20]}
+        rotation={[cameraView ? 0 : -Math.PI / 2, 0, 0]}
         color={'#a0a0a0'}
       >
         Front
       </Text>
       <Text
         {...fontProps}
-        position={[0, 0, -28]}
-        rotation={[0, 0, 0]}
+        position={[0, 1.2, -20]}
+        rotation={[cameraView ? 0 : -Math.PI / 2, 0, 0]}
         color={'#a0a0a0'}
       >
         Back
@@ -117,6 +145,7 @@ export default function Stage({ positions }: { positions: number[][] }) {
           <Cylinder
             position={[pos[0] * 2, 1.2, pos[1] * 2]}
             label={i.toString()}
+            cameraView={cameraView}
             key={i}
           />
         );
