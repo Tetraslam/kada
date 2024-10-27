@@ -4,6 +4,7 @@ import Stage from '@/components/Stage';
 import './globals.css';
 import { useCallback, useEffect, useState } from 'react';
 import { Camera, CirclePlay, Download, Gauge, Upload } from 'lucide-react';
+import { supabase } from '@/lib/supabase-client';
 
 export default function Page() {
   const [positions, setPositions] = useState([
@@ -14,10 +15,10 @@ export default function Page() {
     [2, -1],
   ]);
   const [cameraView, setCameraView] = useState<boolean>(true);
+  const [signedVideoUrl, setSignedVideoUrl] = useState('');
 
   const keyHandler = useCallback(
     (e: KeyboardEvent) => {
-      console.log(e.key);
       if (e.key === 'c') {
         console.log('changing value of cameraview...');
         setCameraView((x) => !x);
@@ -27,9 +28,18 @@ export default function Page() {
   );
 
   useEffect(() => {
+    (async () => {
+      if (signedVideoUrl) return;
+
+      // Get signed Supabase URL for video playback
+      setSignedVideoUrl(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/video/armageddon.mp4`,
+      );
+    })();
+
+    // Keybinds
     if (!setCameraView) return;
     window.addEventListener('keydown', keyHandler, true);
-    console.log('added event listener');
     return () => window.removeEventListener('keydown', keyHandler);
   }, [setCameraView]);
 
@@ -42,19 +52,11 @@ export default function Page() {
       <div className="absolute left-0 top-0 m-6 select-none text-white">
         <p className="text-3xl font-black">Armageddon</p>
         <p>AESPA</p>
-        <p>{JSON.stringify(cameraView)}</p>
       </div>
 
       {/* Video */}
-      <div className="absolute right-0 top-0 m-6 aspect-video w-60 overflow-hidden rounded-md">
-        {/* <iframe
-          className="h-full w-full"
-          src="https://www.youtube-nocookie.com/embed/vRWGuybXnNk?si=ZSs38r4-Tb8lRo9u&amp;controls=0"
-          title="YouTube video player"
-          allow=""
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-        ></iframe> */}
+      <div className="absolute right-0 top-0 m-6 aspect-video w-80 overflow-hidden rounded-md">
+        <video src={signedVideoUrl} className="h-full w-full" />
       </div>
 
       {/* Controls */}
