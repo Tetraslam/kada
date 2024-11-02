@@ -1,6 +1,22 @@
 # K-Pop Formation Generator
 
+## Setup
+
+Frontend:
+
+1. `cd frontend`
+2. `pnpm install`
+3. `npx next dev`
+
+The frontend now runs on https://localhost:3000.
+
+Backend:
+
+1. `cd backend`
+2. `pip install -r requirements.txt`
+
 ## Features
+
 - [ ] Automatically detects position and translates to a matrix
 - [ ] Detects depth
 - [ ] Color-codes center
@@ -11,6 +27,7 @@
 - [ ] Service-based arch
 
 ## Tech Stack
+
 - Frontend
   - NextJS
   - ThreeJS
@@ -27,6 +44,7 @@
   - Supabase
 
 ## Timeline
+
 - Make Figma (Char)
 - Three.js rendering engine (William)
 - Build UI (William)
