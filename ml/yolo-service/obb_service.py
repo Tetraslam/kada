@@ -5,19 +5,17 @@ from datetime import timedelta
 import json
 
 # # Load a model
-model = YOLO("yolov8n.pt")
+model = YOLO("model.pt")
 
 # # Train the model
-# results = model.train(data="coco8.yaml", epochs=8, imgsz=640)
-video_path = './Video/ShortTest.mp4'
+# results = model.train(data="coco8.yaml", epochs=20, imgsz=640)
+video_path = './Video/MidasTouch.mp4'
 
 cap = cv2.VideoCapture(video_path)
 
-# Get video properties
 frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-# Initialize an array to store results
-results = model(video_path, show=True)
+results = model(video_path, show=True, save=True)
 
 cap = cv2.VideoCapture(video_path)
 fps = cap.get(cv2.CAP_PROP_FPS)
@@ -53,8 +51,6 @@ cap.release()
 cv2.destroyAllWindows()
 
 file_name = 'data.json'
-
-# Write the JSON data to the file
 with open(file_name, 'w') as json_file:
     json.dump(timestamps, json_file, indent=2)
 
