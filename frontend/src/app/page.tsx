@@ -2,19 +2,11 @@
 import Stage from '@/components/Stage';
 import './globals.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Camera,
-  CirclePlay,
-  Download,
-  Gauge,
-  Loader2,
-  Pause,
-  Play,
-  Upload,
-} from 'lucide-react';
+import { Camera, Download, Loader2, Pause, Play, Upload } from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
 import { cn } from '@/lib/utils';
 import Scrubber from '@/components/Scrubber';
+import { Button } from '@/components/ui/button';
 
 export default function Page() {
   const [positions, setPositions] = useState([
@@ -139,22 +131,19 @@ export default function Page() {
 
       {/* Controls */}
       <div className="absolute bottom-0 flex w-full items-center gap-4 rounded-lg px-6 py-6 text-pink-400 backdrop-blur-sm">
-        <button onClick={togglePlayPause}>
-          {!isPlaying ? <Play /> : <Pause />}
-        </button>
-        <button onClick={() => setCameraView((x) => !x)}>
-          <Camera />
-        </button>
+        <Button variant="icon" onClick={togglePlayPause}>
+          {!isPlaying ? (
+            <Play className="fill-pink-400" size={20} />
+          ) : (
+            <Pause className="fill-pink-400" size={20} />
+          )}
+        </Button>
 
         <Scrubber curTime={curTime} duration={duration} seekTo={seekTo} />
 
-        {/* Upload */}
-        <button>
-          <Upload />
-        </button>
-        <button>
-          <Download />
-        </button>
+        <Button variant="icon" onClick={() => setCameraView((x) => !x)}>
+          <Camera />
+        </Button>
       </div>
     </div>
   );
