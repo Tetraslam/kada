@@ -27,22 +27,27 @@ video_path = '/Users/xiaolesu/CodeProjects/IndepProj/BostonHack/kada/ml/yolo-ser
 cap = cv2.VideoCapture(video_path)
 
 # Get video properties
-
-fps = cap.get(cv2.CAP_PROP_FPS)
 frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
 # Initialize an array to store results
 results = model(video_path)
 
+cap = cv2.VideoCapture(video_path)
+fps = cap.get(cv2.CAP_PROP_FPS)
 
-coordinates = []
-
+timestamps = []
 idx = 0
-for result in results:
-  boxes = result.boxes
+while cap.isOpened():
+  ret, frame = cap.read()
+  if not ret:
+      break
+  timestamp = timedelta(seconds=idx/fps)
+  boxes = results[idx].boxes
+  coordinates = []
+  
   for box in boxes:
     xyxy = box.xyxy.numpy()
-    class_id = box.cls
+    class_id = int(box.cls)
     if(class_id ==0) :
       x_min, y_min, x_max, y_max = xyxy[0]
       coordinates.append({
@@ -50,14 +55,44 @@ for result in results:
         "idx": idx,
         "coord": [[round(x_min), round(y_min)], [round(x_max), round(y_max)]],
       })
-    
+  timestamps.append({
+      "time": str(timestamp),
+      "capture" : coordinates
+  })
+   
   idx +=1
 
 
-print(coordinates)
-# cap = cv2.VideoCapture(video_path)
+print(timestamps)
 
+
+
+
+# results = model(video_path)
+
+# cap = cv2.VideoCapture(video_path)
 # fps = cap.get(cv2.CAP_PROP_FPS)
+
+# coordinates = []
+
+# idx = 0
+# for result in results:
+#   boxes = result.boxes
+#   for box in boxes:
+#     xyxy = box.xyxy.numpy()
+#     class_id = int(box.cls)
+#     if(class_id ==0) :
+#       x_min, y_min, x_max, y_max = xyxy[0]
+#       coordinates.append({
+#         #bottom left, top right
+#         "idx": idx,
+#         "coord": [[round(x_min), round(y_min)], [round(x_max), round(y_max)]],
+#       })
+    
+#   idx +=1
+
+
+# print(coordinates)
 
 # while cap.isOpened():
 #     ret, frame = cap.read()
@@ -71,8 +106,6 @@ print(coordinates)
 # cap.release()
 # cv2.destroyAllWindows()
 
-#       #  Confidence: {confidence}, Class ID: {class_id}
-    
 #     print("next frame")
 #     frame_idx += 1
 
@@ -83,17 +116,6 @@ print(coordinates)
 
 # # Results array now contains bounding box coordinates and timestamps for each frame
 # print(results)
-
-
-# for result in results:
-#     boxes = result.boxes 
-#     # box -> posn-x-min posn-y-min posn-y-max posn-x-max
-#     for box in boxes:
-#         xyxy = box.xyxy.numpy()
-#         x_min, y_min, x_max, y_max = xyxy[0]
-#         # print("Timestamp: {timestamp_sec:.2f}s, Bounding box coordinates: x_min={x_min}, y_min={y_min}, x_max={x_max}, y_max={y_max}")
-
-
 
 # while cap.isOpened():
 #     timestamp_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
