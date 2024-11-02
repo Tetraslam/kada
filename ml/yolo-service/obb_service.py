@@ -2,13 +2,14 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 from datetime import timedelta
+import json
 
 # # Load a model
 model = YOLO("yolov8n.pt")
 
 # # Train the model
 # results = model.train(data="coco8.yaml", epochs=8, imgsz=640)
-video_path = '/Users/xiaolesu/CodeProjects/IndepProj/BostonHack/kada/ml/yolo-service/Video/test.mp4'
+video_path = './Video/ShortTest.mp4'
 
 cap = cv2.VideoCapture(video_path)
 
@@ -50,6 +51,10 @@ while cap.isOpened():
 
 cap.release()
 cv2.destroyAllWindows()
-print(timestamps)
 
+file_name = 'data.json'
+
+# Write the JSON data to the file
+with open(file_name, 'w') as json_file:
+    json.dump(timestamps, json_file, indent=2)
 

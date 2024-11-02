@@ -1,3 +1,5 @@
 .venv/
 
 ml/yolo-service/Video
+
+/frontend
