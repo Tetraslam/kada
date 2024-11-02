@@ -8,6 +8,9 @@ import {
 } from '@react-three/drei';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
+import { Vector3 } from 'three';
+
+const height = 3.5;
 
 // Font
 const fontProps = {
@@ -45,22 +48,14 @@ function Cylinder({
         onPointerOver={(e) => setHover(true)}
         onPointerOut={(e) => setHover(false)}
       >
-        <cylinderGeometry args={[0.8, 0.8, 2.4, 32]} />
+        <cylinderGeometry args={[0.8, 0.8, height, 32]} />
         <meshStandardMaterial color={hovered ? 'orange' : 'hotpink'} />
 
-        {/* <Text
-          {...fontProps}
-          characters="0123456789"
-          rotation={[-Math.PI / 2, 0, 0]}
-          position={[0, 1.21, 0]}
-        >
-          {label}
-        </Text> */}
         <Text
           {...fontProps}
           characters="0123456789"
           rotation={cameraView ? [0, 0, 0] : [-Math.PI / 2, 0, 0]}
-          position={cameraView ? [0, 0, 0.8] : [0, 1.21, 0]}
+          position={cameraView ? [0, 0, 0.8] : [0, height / 2 + 0.01, 0]}
         >
           {label}
         </Text>
@@ -93,9 +88,10 @@ export default function Stage({
         minPolarAngle={0}
         maxPolarAngle={Math.PI / 2 - Math.PI / 16}
         dampingFactor={0.1}
-        minDistance={20}
+        minDistance={5}
         maxDistance={100}
         enabled={cameraView}
+        target={[0, 0, 0]}
       />
       <OrthographicCamera
         makeDefault={!cameraView}
@@ -132,7 +128,7 @@ export default function Stage({
       </Text>
       <Text
         {...fontProps}
-        position={[0, 1.2, -20]}
+        position={[0, height / 2, -20]}
         rotation={[cameraView ? 0 : -Math.PI / 2, 0, 0]}
         color={'#a0a0a0'}
       >
@@ -143,7 +139,7 @@ export default function Stage({
       {positions.map((pos, i) => {
         return (
           <Cylinder
-            position={[pos[0] * 2, 1.2, pos[1] * 2]}
+            position={[pos[0] * 2, height / 2, pos[1] * 2]}
             label={i.toString()}
             cameraView={cameraView}
             key={i}

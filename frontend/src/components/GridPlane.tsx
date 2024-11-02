@@ -14,11 +14,11 @@ export const GridPlane = ({ size = 100, divisions = 10 }) => {
 
   return (
     <mesh position={[0, 0, 0]}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
-        <planeGeometry args={[36, 36, 1, 1]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
+        <planeGeometry args={[20, 20, 1, 1]} />
         <meshStandardMaterial color="#333036" />
       </mesh>
-      <gridHelper args={[36, 18, 0xffffff, 0x808080]} />
+      <gridHelper args={[20, 10, 0xffffff, 0x808080]} />
     </mesh>
   );
 };

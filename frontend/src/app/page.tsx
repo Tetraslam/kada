@@ -111,7 +111,7 @@ export default function Page() {
       {/* Video */}
       <div
         className={cn(
-          'absolute right-0 top-0 m-6 flex aspect-video w-80 items-center justify-center overflow-hidden rounded-md',
+          'absolute right-0 top-0 m-6 flex aspect-video w-80 items-center justify-center overflow-hidden rounded-md lg:w-96',
           !videoLoaded ? 'animate-pulse bg-black' : '',
         )}
       >
@@ -130,7 +130,7 @@ export default function Page() {
       </div>
 
       {/* Controls */}
-      <div className="absolute bottom-0 flex w-full items-center gap-4 rounded-lg px-6 py-6 text-pink-400 backdrop-blur-sm">
+      <div className="absolute bottom-10 left-1/2 flex w-full max-w-2xl -translate-x-1/2 items-center gap-4 rounded-2xl px-6 py-4 text-pink-400 backdrop-blur-sm">
         <Button variant="icon" onClick={togglePlayPause}>
           {!isPlaying ? (
             <Play className="fill-pink-400" size={20} />
@@ -143,6 +143,9 @@ export default function Page() {
 
         <Button variant="icon" onClick={() => setCameraView((x) => !x)}>
           <Camera />
+        </Button>
+        <Button variant="icon">
+          <Download />
         </Button>
       </div>
     </div>
