@@ -1,5 +1,4 @@
 'use client';
-
 import Stage from '@/components/Stage';
 import './globals.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -29,7 +28,6 @@ export default function Page() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [curTime, setCurTime] = useState(0);
   const [duration, setDuration] = useState(0);
-
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Handlers
@@ -48,25 +46,37 @@ export default function Page() {
         setCameraView((prev) => !prev);
       }
       if (e.key === 'ArrowLeft') {
-        if (videoLoaded) seekTo(curTime - 5);
+        if (videoLoaded) {
+          // Use callback form to get latest curTime
+          setCurTime((prevTime) => {
+            const newTime = Math.max(0, prevTime - 5);
+            if (videoRef.current) videoRef.current.currentTime = newTime;
+            return newTime;
+          });
+        }
       }
       if (e.key === 'ArrowRight') {
-        if (videoLoaded) seekTo(curTime + 5);
+        if (videoLoaded) {
+          // Use callback form to get latest curTime
+          setCurTime((prevTime) => {
+            const newTime = Math.min(duration, prevTime + 5);
+            if (videoRef.current) videoRef.current.currentTime = newTime;
+            return newTime;
+          });
+        }
       }
     },
-    [videoLoaded, curTime, seekTo],
+    [videoLoaded, duration], // Remove curTime from dependencies
   );
 
   // Initialize component
   useEffect(() => {
     (async () => {
       if (signedVideoUrl) return;
-
       // Get signed Supabase URL for video playback
       const { data, error } = await supabase.storage
         .from('video')
         .createSignedUrl('armageddon.mp4', 3600);
-
       if (error || !data.signedUrl) {
         console.error('Error fetching signed video URL:', error);
       } else {
@@ -78,7 +88,20 @@ export default function Page() {
     if (!setCameraView) return;
     window.addEventListener('keydown', keyHandler, true);
     return () => window.removeEventListener('keydown', keyHandler);
-  }, [setCameraView, videoLoaded]);
+  }, [setCameraView, keyHandler, signedVideoUrl]);
+
+  // Add timeupdate listener to keep curTime in sync with video
+  /* useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => {
+      setCurTime(video.currentTime);
+    };
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    return () => video.removeEventListener('timeupdate', handleTimeUpdate);
+  }, []); */
 
   const onVideoLoadMetadata = () => {
     setVideoLoaded(true);
