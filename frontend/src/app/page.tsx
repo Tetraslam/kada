@@ -7,8 +7,9 @@ import {
   CirclePlay,
   Download,
   Gauge,
-  Loader,
   Loader2,
+  Pause,
+  Play,
   Upload,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
@@ -26,8 +27,10 @@ export default function Page() {
   const [cameraView, setCameraView] = useState<boolean>(true);
   const [signedVideoUrl, setSignedVideoUrl] = useState('');
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [curTime, setCurTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [curTime, setCurTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Handlers
@@ -35,38 +38,36 @@ export default function Page() {
     (time: number) => {
       const clampedTime = Math.min(duration, Math.max(time, 0));
       setCurTime(clampedTime);
-      if (videoRef.current) videoRef.current.currentTime = clampedTime;
+
+      const video = videoRef.current;
+      if (!video) return;
+      video.currentTime = clampedTime;
     },
-    [duration],
+    [duration, isPlaying],
   );
+  const togglePlayPause = useCallback(() => {
+    if (!videoLoaded || !videoRef.current) return;
+    if (!videoRef.current.paused) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  }, [videoLoaded, isPlaying]);
 
   const keyHandler = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'c') {
         setCameraView((prev) => !prev);
       }
-      if (e.key === 'ArrowLeft') {
-        if (videoLoaded) {
-          // Use callback form to get latest curTime
-          setCurTime((prevTime) => {
-            const newTime = Math.max(0, prevTime - 5);
-            if (videoRef.current) videoRef.current.currentTime = newTime;
-            return newTime;
-          });
-        }
-      }
-      if (e.key === 'ArrowRight') {
-        if (videoLoaded) {
-          // Use callback form to get latest curTime
-          setCurTime((prevTime) => {
-            const newTime = Math.min(duration, prevTime + 5);
-            if (videoRef.current) videoRef.current.currentTime = newTime;
-            return newTime;
-          });
-        }
-      }
+
+      if (!videoLoaded) return;
+      if (e.key === 'ArrowLeft') seekTo(Math.max(0, curTime - 5));
+      if (e.key === 'ArrowRight') seekTo(Math.min(duration, curTime + 5));
+      if (e.key === ' ') togglePlayPause();
     },
-    [videoLoaded, duration], // Remove curTime from dependencies
+    [videoLoaded, duration, isPlaying, curTime],
   );
 
   // Initialize component
@@ -86,22 +87,18 @@ export default function Page() {
 
     // Keybinds
     if (!setCameraView) return;
-    window.addEventListener('keydown', keyHandler, true);
-    return () => window.removeEventListener('keydown', keyHandler);
+    window.onkeydown = keyHandler;
   }, [setCameraView, keyHandler, signedVideoUrl]);
 
-  // Add timeupdate listener to keep curTime in sync with video
-  /* useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const handleTimeUpdate = () => {
-      setCurTime(video.currentTime);
-    };
-
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    return () => video.removeEventListener('timeupdate', handleTimeUpdate);
-  }, []); */
+  // Keep curTime and play/pause in sync with video
+  useEffect(() => {
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+    videoEl.ontimeupdate = () => setCurTime(videoRef.current?.currentTime ?? 0);
+    videoEl.onplay = () => setIsPlaying(true);
+    videoEl.onpause = () => setIsPlaying(false);
+    videoEl.onended = () => setIsPlaying(false);
+  }, [videoRef.current]);
 
   const onVideoLoadMetadata = () => {
     setVideoLoaded(true);
@@ -141,12 +138,9 @@ export default function Page() {
       </div>
 
       {/* Controls */}
-      <div className="absolute bottom-0 flex w-full items-center gap-4 rounded-lg px-10 py-6 text-pink-400 backdrop-blur-sm">
-        <button>
-          <Gauge />
-        </button>
-        <button>
-          <CirclePlay />
+      <div className="absolute bottom-0 flex w-full items-center gap-4 rounded-lg px-6 py-6 text-pink-400 backdrop-blur-sm">
+        <button onClick={togglePlayPause}>
+          {!isPlaying ? <Play /> : <Pause />}
         </button>
         <button onClick={() => setCameraView((x) => !x)}>
           <Camera />
