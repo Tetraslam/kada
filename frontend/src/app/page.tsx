@@ -106,7 +106,7 @@ export default function Page() {
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#26222a]">
+    <div className="h-screen w-screen overflow-hidden bg-[#2a272d]">
       {/* Stage */}
       <Stage
         positions={positions}
@@ -144,7 +144,13 @@ export default function Page() {
       </div>
 
       {/* Controls */}
-      <div className="absolute bottom-10 left-1/2 flex w-full max-w-2xl -translate-x-1/2 select-none items-center gap-1 rounded-2xl px-4 py-2 text-pink-400 backdrop-blur-sm">
+      <div
+        className={cn(
+          'absolute bottom-10 left-1/2 flex w-full max-w-2xl -translate-x-1/2 select-none items-center gap-1 rounded-2xl px-4 py-2 text-pink-400 backdrop-blur-sm',
+          !videoLoaded && 'pointer-events-none grayscale',
+          'transition-all',
+        )}
+      >
         <Button variant="icon" onClick={togglePlayPause}>
           {!isPlaying ? (
             <Play className="fill-pink-400" size={20} />

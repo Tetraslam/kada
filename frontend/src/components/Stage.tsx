@@ -88,7 +88,7 @@ export default function Stage({
       {/* Camera */}
       <PerspectiveCamera
         makeDefault={cameraView}
-        position={[0, 0, 50]}
+        position={[0, 20, 50]}
         fov={30}
       />
       <OrbitControls
@@ -100,7 +100,7 @@ export default function Stage({
         minDistance={10}
         maxDistance={100}
         enabled={cameraView}
-        target={[0, 1, 0]}
+        target={[0, 0, 0]}
       />
       <OrthographicCamera
         makeDefault={!cameraView}
