@@ -1,17 +1,19 @@
+// Stage.tsx
 import { GridPlane } from '@/components/GridPlane';
 import {
-  Billboard,
   OrbitControls,
   OrthographicCamera,
   PerspectiveCamera,
   Text,
 } from '@react-three/drei';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useEffect, useRef, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { useEffect, useRef } from 'react';
+import { Cylinder } from './cylinder'; // Ensure correct import path
+import { animated, useSpring } from '@react-spring/three'; // If needed
 
 const height = 3.5;
 
-// Font
+// Font Properties
 const fontProps = {
   font: './Inter-Bold.woff',
   fontSize: 1.2,
@@ -19,49 +21,6 @@ const fontProps = {
   lineHeight: 1,
   'material-toneMapped': false,
 };
-
-function Cylinder({
-  position,
-  label,
-  cameraView, // perspective vs orthographic
-}: {
-  position: [number, number, number];
-  label?: string;
-  cameraView: boolean;
-}) {
-  // This reference will give us direct access to the mesh
-  const meshRef: any = useRef();
-
-  // Set up state for the hovered and active state
-  const [hovered, setHover] = useState(false);
-
-  // Subscribe this component to the render-loop, rotate the mesh every frame
-  useFrame((state, delta) => {});
-
-  // Return view, these are regular three.js elements expressed in JSX
-  return (
-    <>
-      <mesh
-        position={position}
-        ref={meshRef}
-        onPointerOver={(e) => setHover(true)}
-        onPointerOut={(e) => setHover(false)}
-      >
-        <cylinderGeometry args={[0.8, 0.8, height, 64]} />
-        <meshStandardMaterial color={false ? 'orange' : '#f472b6'} />
-
-        <Text
-          {...fontProps}
-          characters="0123456789"
-          rotation={cameraView ? [0, 0, 0] : [-Math.PI / 2, 0, 0]}
-          position={cameraView ? [0, 0, 0.81] : [0, height / 2 + 0.01, 0]}
-        >
-          {label}
-        </Text>
-      </mesh>
-    </>
-  );
-}
 
 export default function Stage({
   positions,
@@ -80,35 +39,52 @@ export default function Stage({
 
   useEffect(() => {
     if (!orthoCam.current) return;
-    orthoCam.current?.lookAt(0, 0, 0);
-  }, [orthoCam.current, cameraView]);
+    orthoCam.current.lookAt(0, 0, 0);
+  }, [cameraView]);
+
+  // Flatten the position matrix into an array of dancer positions
+  const dancerPositions = [];
+  if (positions && positions.length > 0) {
+    for (let y = 0; y < positions.length; y++) {
+      for (let x = 0; x < positions[y].length; x++) {
+        const dancerNum = positions[y][x];
+        if (dancerNum !== 0) {
+          dancerPositions.push({
+            x,
+            y,
+            dancerNum,
+          });
+        }
+      }
+    }
+  }
 
   return (
     <Canvas>
       {/* Camera */}
-      <PerspectiveCamera
-        makeDefault={cameraView}
-        position={[0, 20, 50]}
-        fov={30}
-      />
-      <OrbitControls
-        minAzimuthAngle={-Math.PI / 2}
-        maxAzimuthAngle={Math.PI / 2}
-        minPolarAngle={0}
-        maxPolarAngle={Math.PI / 2 - Math.PI / 16}
-        dampingFactor={0.1}
-        minDistance={10}
-        maxDistance={100}
-        enabled={cameraView}
-        target={[0, 0, 0]}
-      />
-      <OrthographicCamera
-        makeDefault={!cameraView}
-        zoom={30}
-        position={[0, 5, 0]}
-        ref={orthoCam}
-      />
-
+      {cameraView ? (
+        <>
+          <PerspectiveCamera makeDefault position={[0, 20, 50]} fov={30} />
+          <OrbitControls
+            enablePan={true}
+            enableZoom={true}
+            enableRotate={true}
+            minDistance={10}
+            maxDistance={100}
+            target={[0, 0, 0]}
+          />
+        </>
+      ) : (
+        <>
+          <OrthographicCamera
+            makeDefault
+            zoom={30}
+            position={[0, 5, 0]}
+            ref={orthoCam}
+          />
+          {/* Optionally add controls for orthographic camera */}
+        </>
+      )}
       {/* Lighting */}
       <ambientLight intensity={Math.PI / 2} />
       <spotLight
@@ -144,17 +120,19 @@ export default function Stage({
         Back
       </Text>
 
-      {/* Cylinders */}
-      {positions.map((pos, i) => {
-        return (
-          <Cylinder
-            position={[pos[0] * 2, height / 2, pos[1] * 2]}
-            label={i.toString()}
-            cameraView={cameraView}
-            key={i}
-          />
-        );
-      })}
+      {/* Cylinders with Smooth Transitions */}
+      {dancerPositions.map((dancer) => (
+        <Cylinder
+          position={[
+            (dancer.x - width / 2) * size,
+            height / 2,
+            (dancer.y - depth / 2) * size,
+          ]}
+          label={dancer.dancerNum.toString()}
+          cameraView={cameraView}
+          key={dancer.dancerNum} // Ensure unique key
+        />
+      ))}
     </Canvas>
   );
 }
