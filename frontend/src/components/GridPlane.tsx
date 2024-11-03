@@ -1,24 +1,56 @@
-import React from 'react';
-import { PlaneGeometry, MeshStandardMaterial } from 'three';
+import React, { useLayoutEffect, useRef } from 'react';
+import { PlaneGeometry, MeshStandardMaterial, Vector3 } from 'three';
 
-export const GridPlane = ({ size = 100, divisions = 10 }) => {
-  const geometry = new PlaneGeometry(size, size);
-  const material = new MeshStandardMaterial({ color: '#808080' });
+function Line({ start, end }: { start: number[]; end: number[] }) {
+  const ref = useRef<any>();
+  useLayoutEffect(() => {
+    ref.current?.geometry.setFromPoints(
+      [start, end].map((point) => new Vector3(...point)),
+    );
+  }, [start, end]);
+  return (
+    <line ref={ref}>
+      <bufferGeometry />
+      <lineBasicMaterial color="#606060" />
+    </line>
+  );
+}
 
-  const gridMaterial = new MeshStandardMaterial({
-    color: '#FFFFFF',
-    wireframe: true,
-    opacity: 0.5,
-    transparent: true,
-  });
-
+export const GridPlane = ({
+  width,
+  depth,
+  size,
+}: {
+  width: number;
+  depth: number;
+  size: number;
+}) => {
   return (
     <mesh position={[0, 0, 0]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-        <planeGeometry args={[20, 20, 1, 1]} />
+        <planeGeometry args={[width * size, depth * size, 1, 1]} />
         <meshStandardMaterial color="#333036" />
       </mesh>
-      <gridHelper args={[20, 10, 0xffffff, 0x808080]} />
+      {/* <gridHelper args={[20, 10, 0xffffff, 0x808080]} /> */}
+
+      {[...Array(depth + 1)].map((_, i) => {
+        const z = (i - depth / 2) * size;
+        return (
+          <Line
+            start={[(-width / 2) * size, 0, z]}
+            end={[(width / 2) * size, 0, z]}
+          />
+        );
+      })}
+      {[...Array(width + 1)].map((_, i) => {
+        const x = (i - width / 2) * size;
+        return (
+          <Line
+            start={[x, 0, (depth / 2) * size]}
+            end={[x, 0, -(depth / 2) * size]}
+          />
+        );
+      })}
     </mesh>
   );
 };
