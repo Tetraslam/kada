@@ -8,7 +8,6 @@ import {
 } from '@react-three/drei';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
-import { Vector3 } from 'three';
 
 const height = 3.5;
 
@@ -49,7 +48,7 @@ function Cylinder({
         onPointerOut={(e) => setHover(false)}
       >
         <cylinderGeometry args={[0.8, 0.8, height, 32]} />
-        <meshStandardMaterial color={hovered ? 'orange' : 'hotpink'} />
+        <meshStandardMaterial color={false ? 'orange' : '#f472b6'} />
 
         <Text
           {...fontProps}
@@ -67,9 +66,15 @@ function Cylinder({
 export default function Stage({
   positions,
   cameraView,
+  width,
+  depth,
+  size,
 }: {
   positions: number[][];
   cameraView: boolean;
+  width: number;
+  depth: number;
+  size: number;
 }) {
   const orthoCam: any = useRef();
 
@@ -91,7 +96,7 @@ export default function Stage({
         minDistance={5}
         maxDistance={100}
         enabled={cameraView}
-        target={[0, 0, 0]}
+        target={[0, 1, 0]}
       />
       <OrthographicCamera
         makeDefault={!cameraView}
@@ -115,12 +120,12 @@ export default function Stage({
       <color attach="background" args={['#26222a']} />
 
       {/* Floor */}
-      <GridPlane />
+      <GridPlane width={width} depth={depth} size={size} />
 
       {/* Text label for stage directions */}
       <Text
         {...fontProps}
-        position={[0, 0, 20]}
+        position={[0, 0, (depth / 2 + 0.5) * size]}
         rotation={[cameraView ? 0 : -Math.PI / 2, 0, 0]}
         color={'#a0a0a0'}
       >
@@ -128,7 +133,7 @@ export default function Stage({
       </Text>
       <Text
         {...fontProps}
-        position={[0, height / 2, -20]}
+        position={[0, height / 2, (-depth / 2 - 0.5) * size]}
         rotation={[cameraView ? 0 : -Math.PI / 2, 0, 0]}
         color={'#a0a0a0'}
       >

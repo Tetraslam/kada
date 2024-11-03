@@ -2,7 +2,15 @@
 import Stage from '@/components/Stage';
 import './globals.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Camera, Download, Loader2, Pause, Play, Upload } from 'lucide-react';
+import {
+  Camera,
+  Download,
+  Loader2,
+  Pause,
+  Play,
+  SwitchCamera,
+  Upload,
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
 import { cn } from '@/lib/utils';
 import Scrubber from '@/components/Scrubber';
@@ -100,7 +108,13 @@ export default function Page() {
   return (
     <div className="h-screen w-screen overflow-hidden bg-[#26222a]">
       {/* Stage */}
-      <Stage positions={positions} cameraView={cameraView} />
+      <Stage
+        positions={positions}
+        cameraView={cameraView}
+        width={16}
+        depth={10}
+        size={2}
+      />
 
       {/* Dance title, artist */}
       <div className="absolute left-0 top-0 m-6 select-none text-white">
@@ -130,7 +144,7 @@ export default function Page() {
       </div>
 
       {/* Controls */}
-      <div className="absolute bottom-10 left-1/2 flex w-full max-w-2xl -translate-x-1/2 items-center gap-4 rounded-2xl px-6 py-4 text-pink-400 backdrop-blur-sm">
+      <div className="absolute bottom-10 left-1/2 flex w-full max-w-2xl -translate-x-1/2 items-center gap-1 rounded-2xl px-4 py-2 text-pink-400 backdrop-blur-sm">
         <Button variant="icon" onClick={togglePlayPause}>
           {!isPlaying ? (
             <Play className="fill-pink-400" size={20} />
@@ -142,7 +156,7 @@ export default function Page() {
         <Scrubber curTime={curTime} duration={duration} seekTo={seekTo} />
 
         <Button variant="icon" onClick={() => setCameraView((x) => !x)}>
-          <Camera />
+          <SwitchCamera />
         </Button>
         <Button variant="icon">
           <Download />
