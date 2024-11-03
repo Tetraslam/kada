@@ -10,13 +10,14 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 # Initialize models and devices
-yolo_model = YOLO('yolov8n.pt')
+yolo_model = YOLO("yolov8n.pt")
 midas = torch.hub.load("intel-isl/MiDaS", "MiDaS_small").eval()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 midas.to(device)
 midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms")
 transform = midas_transforms.small_transform
 tracker = DeepSort(max_age=30, n_init=3, nn_budget=100)
+
 
 def estimate_depth(frame):
     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -31,12 +32,18 @@ def estimate_depth(frame):
         ).squeeze()
     depth_map = prediction.cpu().numpy()
     depth_min, depth_max = depth_map.min(), depth_map.max()
-    depth_map_normalized = (depth_map - depth_min) / (depth_max - depth_min) if depth_max > depth_min else np.zeros_like(depth_map)
+    depth_map_normalized = (
+        (depth_map - depth_min) / (depth_max - depth_min)
+        if depth_max > depth_min
+        else np.zeros_like(depth_map)
+    )
     return depth_map_normalized
+
 
 def calculate_average_depth(depth_map, bbox):
     x1, y1, x2, y2 = bbox
     return np.mean(depth_map[y1:y2, x1:x2])
+
 
 def normalize_position(bbox, frame_width, frame_height, grid_size=7):
     x_center = (bbox[0] + bbox[2]) / 2 / frame_width
@@ -45,15 +52,16 @@ def normalize_position(bbox, frame_width, frame_height, grid_size=7):
     grid_y = min(int(y_center * grid_size), grid_size - 1)
     return (grid_x, grid_y)
 
+
 def generate_position_matrix(dancer_states, grid_size=7):
     position_matrix = [[0 for _ in range(grid_size)] for _ in range(grid_size)]
     position_occupancy = {}
     for dancer_num, state in dancer_states.items():
-        x, y = state['grid_position']
+        x, y = state["grid_position"]
         position_occupancy.setdefault((x, y), []).append(dancer_num)
     for (x, y), dancers in position_occupancy.items():
         queue = dancers.copy()
-        queue.sort(key=lambda dn: dancer_states[dn]['depth'])
+        queue.sort(key=lambda dn: dancer_states[dn]["depth"])
         for dancer_num in queue:
             if position_matrix[y][x] == 0:
                 position_matrix[y][x] = dancer_num
@@ -62,13 +70,18 @@ def generate_position_matrix(dancer_states, grid_size=7):
                 for dx in [-1, 0, 1]:
                     for dy in [-1, 0, 1]:
                         nx, ny = x + dx, y + dy
-                        if 0 <= nx < grid_size and 0 <= ny < grid_size and position_matrix[ny][nx] == 0:
+                        if (
+                            0 <= nx < grid_size
+                            and 0 <= ny < grid_size
+                            and position_matrix[ny][nx] == 0
+                        ):
                             position_matrix[ny][nx] = dancer_num
                             found = True
                             break
                     if found:
                         break
     return position_matrix
+
 
 class DanceFormationGenerator:
     def __init__(self, num_dancers):
@@ -107,7 +120,10 @@ class DanceFormationGenerator:
         frame_rate = cap.get(cv2.CAP_PROP_FPS)
         frame_count = 0
         for dancer_num, position in self.default_positions.items():
-            self.dancer_states[dancer_num] = {'depth': float('inf'), 'grid_position': position}
+            self.dancer_states[dancer_num] = {
+                "depth": float("inf"),
+                "grid_position": position,
+            }
         while True:
             # Skip frames by grabbing without decoding
             for _ in range(frame_interval - 1):
@@ -135,7 +151,7 @@ class DanceFormationGenerator:
             detections = []
             for bbox, conf in zip(bounding_boxes, confidences):
                 x1, y1, x2, y2 = bbox
-                detections.append(([x1, y1, x2 - x1, y2 - y1], conf, 'person'))
+                detections.append(([x1, y1, x2 - x1, y2 - y1], conf, "person"))
             # Update tracker
             tracks = tracker.update_tracks(detections, frame=frame)
             dancers_detected = []
@@ -147,28 +163,37 @@ class DanceFormationGenerator:
                 bbox = [int(coord) for coord in ltrb]
                 dancer_num = self.assign_dancer_num(track_id)
                 if dancer_num:
-                    dancers_detected.append({'num': dancer_num, 'bbox': bbox})
+                    dancers_detected.append({"num": dancer_num, "bbox": bbox})
             # Depth Estimation with MiDaS
             depth_map = estimate_depth(frame)
             frame_height, frame_width = frame.shape[:2]
             # Update dancer_states
             for dancer in dancers_detected:
-                dancer_num = dancer['num']
-                bbox = dancer['bbox']
+                dancer_num = dancer["num"]
+                bbox = dancer["bbox"]
                 depth = calculate_average_depth(depth_map, bbox)
-                grid_position = normalize_position(bbox, frame_width, frame_height, grid_size)
-                self.dancer_states[dancer_num] = {'depth': depth, 'grid_position': grid_position}
+                grid_position = normalize_position(
+                    bbox, frame_width, frame_height, grid_size
+                )
+                self.dancer_states[dancer_num] = {
+                    "depth": depth,
+                    "grid_position": grid_position,
+                }
             # Retain last known positions for missing dancers
             position_matrix = generate_position_matrix(self.dancer_states, grid_size)
             # Save position matrices at intervals
             if frame_count % frame_interval == 0:
                 timestamp = round(frame_count / frame_rate, 2)
-                output_entry = {"timestamp": timestamp, "position_matrix": position_matrix}
+                output_entry = {
+                    "timestamp": timestamp,
+                    "position_matrix": position_matrix,
+                }
                 output_data.append(output_entry)
                 logging.info(f"Appended position matrix at timestamp {timestamp}")
         cap.release()
         cv2.destroyAllWindows()
         return output_data
+
 
 class DanceFormationAPI:
     def __init__(self, num_dancers):
@@ -179,9 +204,10 @@ class DanceFormationAPI:
         output_data = self.generator.generate_position_matrices(video_path)
         return output_data
 
+
 if __name__ == "__main__":
-    video_input_path = 'twice.mp4'  # Replace with your video path
-    json_output_path = 'output_position_matrices.json'
+    video_input_path = "twice.mp4"  # Replace with your video path
+    json_output_path = "output_position_matrices.json"
     num_dancers = 4  # Set the desired number of dancers
     api = DanceFormationAPI(num_dancers)
     output_data = api.process_video_and_get_positions(video_input_path)
