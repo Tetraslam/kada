@@ -2,3 +2,4 @@
 backend/__pycache__
 
 ml/yolo-service/Video
+*.mp4
