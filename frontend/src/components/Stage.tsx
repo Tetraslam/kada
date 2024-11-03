@@ -47,14 +47,14 @@ function Cylinder({
         onPointerOver={(e) => setHover(true)}
         onPointerOut={(e) => setHover(false)}
       >
-        <cylinderGeometry args={[0.8, 0.8, height, 32]} />
+        <cylinderGeometry args={[0.8, 0.8, height, 64]} />
         <meshStandardMaterial color={false ? 'orange' : '#f472b6'} />
 
         <Text
           {...fontProps}
           characters="0123456789"
           rotation={cameraView ? [0, 0, 0] : [-Math.PI / 2, 0, 0]}
-          position={cameraView ? [0, 0, 0.8] : [0, height / 2 + 0.01, 0]}
+          position={cameraView ? [0, 0, 0.81] : [0, height / 2 + 0.01, 0]}
         >
           {label}
         </Text>
@@ -86,21 +86,25 @@ export default function Stage({
   return (
     <Canvas>
       {/* Camera */}
-      <PerspectiveCamera makeDefault={cameraView} position={[0, 0, 20]} />
+      <PerspectiveCamera
+        makeDefault={cameraView}
+        position={[0, 0, 50]}
+        fov={30}
+      />
       <OrbitControls
         minAzimuthAngle={-Math.PI / 2}
         maxAzimuthAngle={Math.PI / 2}
         minPolarAngle={0}
         maxPolarAngle={Math.PI / 2 - Math.PI / 16}
         dampingFactor={0.1}
-        minDistance={5}
+        minDistance={10}
         maxDistance={100}
         enabled={cameraView}
         target={[0, 1, 0]}
       />
       <OrthographicCamera
         makeDefault={!cameraView}
-        zoom={20}
+        zoom={30}
         position={[0, 5, 0]}
         ref={orthoCam}
       />
@@ -108,13 +112,13 @@ export default function Stage({
       {/* Lighting */}
       <ambientLight intensity={Math.PI / 2} />
       <spotLight
-        position={[30, 10, 30]}
+        position={[30, 20, 30]}
         angle={0.15}
         penumbra={1}
         decay={0}
-        intensity={Math.PI}
+        intensity={2}
       />
-      <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
+      <pointLight position={[0, 10, -10]} decay={0} intensity={0} />
 
       {/* Background */}
       <color attach="background" args={['#26222a']} />
@@ -133,7 +137,7 @@ export default function Stage({
       </Text>
       <Text
         {...fontProps}
-        position={[0, height / 2, (-depth / 2 - 0.5) * size]}
+        position={[0, size / 2, (-depth / 2 - 0.5) * size]}
         rotation={[cameraView ? 0 : -Math.PI / 2, 0, 0]}
         color={'#a0a0a0'}
       >
