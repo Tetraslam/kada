@@ -17,13 +17,7 @@ import Scrubber from '@/components/Scrubber';
 import { Button } from '@/components/ui/button';
 
 export default function Page() {
-  const [positions, setPositions] = useState([
-    [0, 1],
-    [1, 0],
-    [-1, 0],
-    [-2, -1],
-    [2, -1],
-  ]);
+  const [positions, setPositions] = useState([]);
   const [cameraView, setCameraView] = useState<boolean>(true);
   const [signedVideoUrl, setSignedVideoUrl] = useState('');
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -74,6 +68,22 @@ export default function Page() {
   useEffect(() => {
     (async () => {
       if (signedVideoUrl) return;
+
+      // Get positions from server
+      const positions = await (
+        await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/process-video`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query: 'aespa - armageddon' }),
+          },
+        )
+      ).json();
+      console.log(positions);
+
       // Get signed Supabase URL for video playback
       const { data, error } = await supabase.storage
         .from('video')

@@ -1,7 +1,17 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 import time
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
 
 @app.get("/api/hello-world")
 async def hello_world():
@@ -19,6 +29,7 @@ async def process_video(query: str):
 
     return {
         "song": query,
+        "video_path": "armageddon.mp4",
         "positions": [
             [0.0, [[0, 0, 1, 0],
                    [0, 2, 0, 0],

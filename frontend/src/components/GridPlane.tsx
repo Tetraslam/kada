@@ -39,6 +39,7 @@ export const GridPlane = ({
           <Line
             start={[(-width / 2) * size, 0, z]}
             end={[(width / 2) * size, 0, z]}
+            key={i}
           />
         );
       })}
@@ -48,6 +49,7 @@ export const GridPlane = ({
           <Line
             start={[x, 0, (depth / 2) * size]}
             end={[x, 0, -(depth / 2) * size]}
+            key={i}
           />
         );
       })}
